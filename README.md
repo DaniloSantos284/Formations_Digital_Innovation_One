@@ -1,23 +1,9 @@
-<table>
-  <tr>
-    <td>
-      <!-- Primeira Imagem -->
-      <img src="https://hermes.dio.me/tracks/a2d3983e-01db-4cfb-9402-fdedae795af0.png" width="100%">
-    </td>
-    <td>
-      <!-- Segunda Imagem -->
-      <img src="[https://hermes.dio.me/tracks/a2d3983e-01db-4cfb-9402-fdedae795af0.png](https://hermes.dio.me/tracks/48e9f018-f7c9-4f0f-b524-cd9223579626.png)" width="100%">
-    </td>
-  </tr>
-</table>
+<div width="100%">
+<img src="https://hermes.dio.me/tracks/a2d3983e-01db-4cfb-9402-fdedae795af0.png" width="45%">
+<img src="https://hermes.dio.me/tracks/48e9f018-f7c9-4f0f-b524-cd9223579626.png" width="45%">
+</div>
 
-<img align="right" src="[https://user-images.githubusercontent.com/91434644/217682666-35255eaa-a554-4fd5-bd5b-045b1301fbe5.png](https://hermes.dio.me/tracks/48e9f018-f7c9-4f0f-b524-cd9223579626.png)" width="48%" heigth="400px" />
-<img align="right" src="[https://user-images.githubusercontent.com/91434644/217682666-35255eaa-a554-4fd5-bd5b-045b1301fbe5.png](https://hermes.dio.me/tracks/a2d3983e-01db-4cfb-9402-fdedae795af0.png)" width="48%" heigth="400px" />
-
-# [Formação React Native + Docker + API] 
-## Formações Oferecidas pela Dio Global
-
-# Aplicativo Mobile em React Native (Expo)
+# Formação React Native + Docker + API 
 
 ## Funcionalidades
 
