@@ -2,43 +2,49 @@ const db = require("../db");
 
 async function createProduct(req, res) {
   try {
-    const { name, barcode, category, quantity, price } = req.body;
+    const { name, barcode, category, quantity = 0, price = 0 } = req.body;
 
     // VALIDAÇÃO: Garantir que 'name' não é vazio ou nulo (campo obrigatório)
     if (!name || name.trim() === "") {
-      return res
-        .status(400)
-        .json({ error: 'Campo "name" é obrigatório e não pode estar vazio' });
+      return res.status(400).json({
+        success: false,
+        error: 'O campo "name" é obrigatório e não pode ser vazio.'
+      })
     }
 
     // VALIDAÇÃO: Garantir que quantity é um número não-negativo
     if (quantity === null || isNaN(quantity) || quantity < 0) {
-      return res
-        .status(400)
-        .json({ error: "Quantidade deve ser um número maior ou igual a zero" });
+      return res.status(400).json({
+        success: false,
+        error: "Quantidade deve ser um número maior ou igual a zero"
+      });
     }
 
     // VALIDAÇÃO: Garantir que price é um número não-negativo
-    if ((price === null && price !== undefined) || isNaN(price)) {
-      return res.status(400).json({ error: "Preço deve ser um número válido" });
+    if ((price === null && price !== undefined) || isNaN(price) || price < 0) {
+      return res.status(400).json({ 
+        success: false,
+        error: "Preço deve ser um número válido" 
+      });
     }
 
     const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-    const insertText = `
-    INSERT INTO products (name, barcode, category, quantity, price, img_url) 
-    VALUES (?, ?, ?, ?, ?, ?)
-    `;
+    const [result] = await db.query(
+      'INSERT INTO products (name, barcode, category, quantity, price, image_url) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, barcode, category, quantity, price, image]
+    );
 
-    const values = [name, barcode, category, quantity, price, image];
+    const [rows] = await db.query(
+      'SELECT * FROM products WHERE id = ?',
+      [result.insertId]
+    );
 
-    const [result] = await db.query(insertText, values);
+    return res.status(201).json({
+      success: true,
+      data: rows[0]
+    });
 
-    const [newProduct] = await db.query("SELECT * FROM products WHERE id = ?", [
-      result.insertId,
-    ]);
-
-    return res.status(201).json(newProduct[0]);
   } catch (err) {
     console.error("Erro ao criar produto:", err);
 
@@ -50,32 +56,59 @@ async function createProduct(req, res) {
 
 async function listProducts(req, res) {
   try {
-    const [rows] = await db.query("SELECT * FROM products ORDER BY name ASC;");
-    return res.json(rows);
+    const [rows] = await db.query(
+      'SELECT * FROM products ORDER BY name ASC'
+    );
+
+    res.json({
+      success: true,
+      data: rows
+    });
+    
   } catch (err) {
     console.error("Erro ao listar produtos:", err);
-    return res.status(500).json({ error: "Internal server error" });
+
+    res.status(500).json({ 
+      success: false,
+      error: "Internal server error" 
+    });
   }
 }
 
 async function getProductById(req, res) {
+  const { id } = req.params;
+
+  if (isNaN(id)) {
+    return res.status(400).json({
+      success: false,
+      error: "ID inválido"
+    });
+  }
+
   try {
-    const { id } = req.params;
+    const [rows] = await db.query(
+      'SELECT * FROM products WHERE id = ?',
+      [id]
+    );
 
-    if (isNaN(id)) {
-      return res.status(400).json({ error: "ID inválido" });
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Produto não encontrado"
+      });
     }
 
-    const [rows] = await db.query("SELECT * FROM products WHERE id = ?", [id]);
-
-    if (!rows || rows.length === 0) {
-      return res.status(404).json({ error: "Not found" });
-    }
-
-    return res.json(rows[0]);
+    res.json({
+      success: true,
+      data: rows[0]
+    });
   } catch (err) {
-    console.error("Erro ao buscar produto:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error("Erro ao buscar produto por ID:", err);
+
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    })
   }
 }
 
@@ -119,13 +152,18 @@ async function addStock(req, res) {
 
     await connection.commit();
 
-    res.json({ success: true });
+    res.json({ 
+      success: true,
+      message: "Estoque adicionado com sucesso"
+    });
+
   } catch (err) {
     if (connection) await connection.rollback();
     console.error("Erro ao adicionar estoque:", err);
     res
       .status(500)
       .json({
+        success: false,
         error: "Erro ao adicionar estoque. Verifique se o produto existe.",
       });
   } finally {
@@ -145,7 +183,7 @@ async function removeStock(req, res) {
     // VALIDAÇÃO
     if (!amount || Number.isNaN(amountNumber) || amountNumber <= 0) {
       return res.status(400).json({
-        error: 'Campo "amount" deve ser um número positivo',
+        error: 'Campo "Quantia" deve ser um número positivo',
       });
     }
 
@@ -187,11 +225,15 @@ async function removeStock(req, res) {
 
     await connection.commit();
 
-    res.json({ success: true });
+    res.json({ 
+      success: true,
+      message: 'Estoque removido com sucesso'
+    });
 } catch (err) {
   if (connection) await connection.rollback();
   console.error('Erro ao remover estoque:', err);
   res.status(500).json({
+    success: false,
     error: 'Erro ao remover estoque. Verifique se o produto existe e tem quantidade suficiente.',
   }); 
 } finally {
@@ -199,35 +241,46 @@ async function removeStock(req, res) {
 }}
 
 async function getHistory(req, res) {
+  const { id } = req.params;
+
+  if (isNaN(id)) {
+    return res.status(400).json({
+      success: false,
+      error: "ID inválido"
+    });
+  }
+
   try {
-    const { id } = req.params;
-
-    // VALIDAÇÃO: Básica
-    if (!id || isNaN(id)) {
-      return res.status(400).json({ error: "ID inválido" });
-    }
-
-    const productChech = await db.query(
+    const [products] = await db.query(
       'SELECT id FROM products WHERE id = ?',
       [id]
     );
 
-    if (productChech.rows.length === 0) {
-      return res.status(404).json({ error: 'Produto não encontrado.' });
+    if (products.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Produto não encontrado"
+      });
     }
 
-    // Busca o histórico
-    const result = await db.query(
-      "SELECT * FROM movements WHERE product_id = ? ORDER BY created_at DESC",
+    const [rows] = await db.query(
+      'SELECT * FROM movements WHERE product_id = ? ORDER BY created_at DESC',
       [id]
     );
 
-    return res.json(result.rows);
+    res.json({
+      success: true,
+      data: rows
+    });
 
   } catch (err) {
-    console.error("Erro ao buscar histórico:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
+    console.error("Erro ao buscar histórico de movimentações:", err);
+
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    })
+  } 
 }
 
 module.exports = {
