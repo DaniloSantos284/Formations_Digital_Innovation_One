@@ -7,18 +7,18 @@ import { StockMovement } from "../../domain/entities/StockMovement";
 import { StockMovementType } from "../../domain/enums/StockMovementType";
 
 
-type addStockEntryInput = {
+type AddStockEntryInput = {
   productId: string;
   quantity: number;
 }
 
-export class addStockEntryUseCase {
+export class AddStockEntryUseCase {
   constructor (
     private productRepository: ProductRepository,
     private stockMovementRepository: StockMovementRepository
   ) {}
 
-  async execute(input: addStockEntryInput): Promise<void> {
+  async execute(input: AddStockEntryInput): Promise<void> {
     if (input.quantity <= 0) {
       throw new Error("A quantidade deve ser maior que zero.");
     }
@@ -26,13 +26,8 @@ export class addStockEntryUseCase {
     const product = await this.productRepository.findById(input.productId);
 
     if (!product) {
-      throw new Error("Product not found")
+      throw new Error("Produto não encontrado");
     }
-
-    const movements = await this.stockMovementRepository.findByProductId(product.id);
-
-    // Reconstroi o agregado corretamente
-    movements.forEach((movement) => product.addMovement(movement));
 
     const stockEntry = new StockMovement({
       id: randomUUID(),

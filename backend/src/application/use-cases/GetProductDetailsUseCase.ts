@@ -15,8 +15,8 @@ type GetProductDetailsOutput = {
   name: string;
   price: number;
   category: ProductCategory;
-  imageUrl?: string;
-  barCode?: string;
+  imageUrl: string | undefined;
+  barCode: string | undefined;
   quantity: number;
   movements: StockMovementOutput[];
 };

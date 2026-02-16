@@ -7,6 +7,7 @@ type CreateProductInput = {
   price: number;
   category: ProductCategory;
   imageUrl?: string;
+  barCode?: string;
 };
 
 type CreateProductOutput = {
@@ -14,7 +15,8 @@ type CreateProductOutput = {
   name: string;
   price: number;
   category: ProductCategory;
-  imageUrl?: string;
+  imageUrl: string | undefined;
+  barCode: string | undefined;
 };
 
 export class CreateProductUseCase {
@@ -30,6 +32,7 @@ export class CreateProductUseCase {
       price: input.price,
       category: input.category,
       imageUrl: input.imageUrl,
+      barCode: input.barCode
     });
 
     await this.productRepository.save(product);
@@ -40,6 +43,7 @@ export class CreateProductUseCase {
       price: product.price,
       category: product.category,
       imageUrl: product.imageUrl,
+      barCode: product.barCode
     };
   }
 }

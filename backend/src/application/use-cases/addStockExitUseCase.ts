@@ -5,19 +5,19 @@ import { StockMovement } from "../../domain/entities/StockMovement";
 import { StockMovementType } from "../../domain/enums/StockMovementType";
 
 
-type addStockExitInput = {
+type AddStockExitInput = {
   productId: string;
   quantity: number;
 };
 
-export class addStockExitUseCase {
+export class AddStockExitUseCase {
   constructor (
     private productRepository: ProductRepository,
-    private StockMovementRepository: StockMovementRepository
+    private stockMovementRepository: StockMovementRepository
   ) {}
 
 
-  async execute(input: addStockExitInput): Promise<void> {
+  async execute(input: AddStockExitInput): Promise<void> {
     if (input.quantity <= 0) {
       throw new Error("A quantidade deve ser maior que zero.")
     }
@@ -28,7 +28,7 @@ export class addStockExitUseCase {
       throw new Error("Produto não encontrado")
     }
 
-    const movements = await this.StockMovementRepository.findByProductId(product.id);
+    const movements = await this.stockMovementRepository.findByProductId(product.id);
 
     movements.forEach((movement) => product.addMovement(movement));
 
@@ -42,6 +42,6 @@ export class addStockExitUseCase {
     // Aqui pode lançar um erro de estoque insuficiente
     product.addMovement(stockExit);
 
-    await this.StockMovementRepository.save(stockExit);
+    await this.stockMovementRepository.save(stockExit);
   }
 }

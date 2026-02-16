@@ -6,8 +6,8 @@ type ProductProps = {
   name: string;
   price: number;
   category: ProductCategory;
-  imageUrl?: string;
-  barCode?: string;
+  imageUrl: string | undefined;
+  barCode: string | undefined;
   stockMovements?: StockMovement[];
 };
 
@@ -16,8 +16,8 @@ export class Product {
   public readonly name: string;
   public price: number;
   public category: ProductCategory;
-  public imageUrl?: string;
-  public barCode?: string;
+  public imageUrl: string | undefined;
+  public barCode: string | undefined;
 
   private stockMovements: StockMovement[];
 
